@@ -1,15 +1,10 @@
 # Plot-Morning-star-Data
 This project is intended to ease the process of plotting financial data downloaded from Morning-star website.
 
-Will become a heading
-==============
 
-Will become a sub heading
+
+Instructions of using this tool
 --------------
-
-*This will be Italic*
-
-**This will be Bold**
-
-- This will be a list item
-- This will be a list item
+- Download financial data from Morning-star website. (e.g. http://financials.morningstar.com/ratios/r.html?t=MRK&region=USA&culture=en_US)
+- Run the script, add file/files, then click 'add file complete button'.
+- Plot single figure or save data to cvs file for future usage.

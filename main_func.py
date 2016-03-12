@@ -4,6 +4,31 @@ import ttk
 import tkFileDialog as fd
 import matplotlib.pyplot as plt
 import datetime
+from numpy import NaN
+
+old_index = ['Revenue USD Mil', 'Gross Margin %', 'Operating Income USD Mil', 'Operating Margin %',
+             'Net Income USD Mil', 'Earnings Per Share USD', 'Dividends USD', 'Payout Ratio %', 'Shares Mil',
+             'Book Value Per Share USD', 'Operating Cash Flow USD Mil', 'Cap Spending USD Mil',
+             'Free Cash Flow USD Mil', 'Free Cash Flow Per Share USD', 'Working Capital USD Mil',
+             'Key Ratios -> Profitability', 'Margins % of Sales', 'Revenue', 'COGS', 'Gross Margin', 'SG&A', 'R&D',
+             'Other', 'Operating Margin', 'Net Int Inc & Other', 'EBT Margin', 'Profitability', 'Tax Rate %',
+             'Net Margin %', 'Asset Turnover (Average)', 'Return on Assets %', 'Financial Leverage (Average)',
+             'Return on Equity %', 'Return on Invested Capital %', 'Interest Coverage', 'Key Ratios -> Growth', NaN,
+             'Revenue %', 'Year over Year', '3-Year Average', '5-Year Average', '10-Year Average', 'Operating Income %',
+             'Year over Year', '3-Year Average', '5-Year Average', '10-Year Average', 'Net Income %', 'Year over Year',
+             '3-Year Average', '5-Year Average', '10-Year Average', 'EPS %', 'Year over Year', '3-Year Average',
+             '5-Year Average', '10-Year Average', 'Key Ratios -> Cash Flow', 'Cash Flow Ratios',
+             'Operating Cash Flow Growth % YOY', 'Free Cash Flow Growth % YOY', 'Cap Ex as a % of Sales',
+             'Free Cash Flow/Sales %', 'Free Cash Flow/Net Income', 'Key Ratios -> Financial Health',
+             'Balance Sheet Items (in %)', 'Cash & Short-Term Investments', 'Accounts Receivable', 'Inventory',
+             'Other Current Assets', 'Total Current Assets', 'Net PP&E', 'Intangibles', 'Other Long-Term Assets',
+             'Total Assets', 'Accounts Payable', 'Short-Term Debt', 'Taxes Payable', 'Accrued Liabilities',
+             'Other Short-Term Liabilities', 'Total Current Liabilities', 'Long-Term Debt',
+             'Other Long-Term Liabilities', 'Total Liabilities', "Total Stockholders' Equity",
+             'Total Liabilities & Equity', 'Liquidity/Financial Health', 'Current Ratio', 'Quick Ratio',
+             'Financial Leverage', 'Debt/Equity', 'Key Ratios -> Efficiency Ratios', 'Efficiency',
+             'Days Sales Outstanding', 'Days Inventory', 'Payables Period', 'Cash Conversion Cycle',
+             'Receivables Turnover', 'Inventory Turnover', 'Fixed Assets Turnover', 'Asset Turnover']
 
 
 class MainWindow(object, tk.Frame):
@@ -92,17 +117,14 @@ class MainWindow(object, tk.Frame):
 
         top_f = ttk.Frame(self)
         top_f.pack(anchor='w', padx=50, pady=(30, 0), fill='both', expand=1)
-        ttk.Button(top_f, text='Add File', command=lambda: add_pth_to_list(file2open_pth, out)).pack(side='left',
-                                                                                                     padx=(0, 25))
-        ttk.Button(top_f, text='Add File Complete',
-                   command=lambda: self.make_com_list_name_list(file2open_pth, bot_f)).pack(side='left', padx=25)
-        ttk.Button(top_f, text='Plot Last Selected Item',
-                   command=lambda: plot_item(self.com_list, self.name_list, self.last_selected_i, index_dic, out)).pack(
-            side='left', padx=25)
-        ttk.Button(top_f, text='Save to File', command=lambda: self.save2file(index_dic, out)).pack(side='left',
-                                                                                                    padx=25)
-        out = ttk.Label(top_f, text='Started!')
-        out.pack(side='left', padx=25)
+        b1 = ttk.Button(top_f, text='Add File', command=lambda: add_csv_file(file2open_pth, status_label, self.name_list, self.com_list))
+        b1.pack(side='left', padx=(0, 25))
+        b2 = ttk.Button(top_f, text='Add File Complete', command=lambda: self.add_file_complete_func(file2open_pth, bot_f, b1, b2))
+        b2.pack(side='left', padx=(25, 50))
+        ttk.Button(top_f, text='Plot Last Selected Item', command=lambda: plot_item(self.com_list, self.name_list, self.last_selected_i, index_dic, status_label)).pack(side='left', padx=(0, 25))
+        ttk.Button(top_f, text='Save to File', command=lambda: self.save2file(index_dic, status_label)).pack(side='left', padx=25)
+        status_label = ttk.Label(top_f, text='Started!')
+        status_label.pack(side='left', padx=25)
 
         bot_f = ttk.Frame(self)
         bot_f_1 = ttk.Frame(bot_f)
@@ -111,7 +133,7 @@ class MainWindow(object, tk.Frame):
                        command=lambda x: self.pack_cbs(x, cbs_dic)).pack(anchor='w', pady=10)
         for i in index_dic:
             for k in sorted(index_dic[i]):
-                cbs_dic[i].append(ttk.Checkbutton(bot_f_1, text=k, command=lambda x=i+","+k: self.a(x, out)))
+                cbs_dic[i].append(ttk.Checkbutton(bot_f_1, text=k, command=lambda x=i+","+k: self.a(x, status_label)))
 
     def pack_cbs(self, list_name, wid_list):
         if self.last_packed != 'none':
@@ -148,28 +170,32 @@ class MainWindow(object, tk.Frame):
                     except:
                         widget.config(text='Error occurred!')
 
-    def make_com_list_name_list(self, pth, bot_f):
+    def add_file_complete_func(self, pth, bot_f, b1, b2):
         if pth:
+            b1.pack_forget()
+            b2.pack_forget()
             bot_f.pack(anchor='w', padx=50, pady=10, fill='both', expand=1)
-            for i in pth:
-                self.name_list.append(i.split('/')[-1][:-15])
-                self.com_list.append(reset_index(pandas.read_csv(i, skiprows=2, index_col=0, thousands=',', na_values=["0"])))
-            list2del = ['2006-12', '2007-12', '2008-12', '2009-12', '2015-12', 'TTM']           # TODO add csv file validation and delete validation
+            list2del = ['2006-12', '2007-12', '2008-12', '2009-12', '2015-12', 'TTM']           # TODO and delete validation
             for i in self.com_list:
-                # i.rename(index={'Year over Year': 'R Year over Year'}, inplace=True)
                 for k in list2del:
                     del i[k]
 
 
-def add_pth_to_list(lst, widget):
+def add_csv_file(lst, widget, name_list, com_list):
     new_pth = fd.askopenfilename()
     if new_pth in lst:
         widget.config(text='Pls add a new file!')
     elif new_pth.split('/')[-1][-14:] != 'Key Ratios.csv':
         widget.config(text='Pls add a valid file!')
     else:
-        lst.append(new_pth)
-        widget.config(text=lst[-1].split('/')[-1]+' added!')
+        temp_df = pandas.read_csv(new_pth, skiprows=2, index_col=0, thousands=',', na_values=["0"])
+        if temp_df.index.tolist() == old_index:
+            com_list.append(reset_index(temp_df))
+            lst.append(new_pth)
+            widget.config(text=lst[-1].split('/')[-1]+' added!')
+            name_list.append(new_pth.split('/')[-1][:-15])
+        else:
+            widget.config(text='Pls add a valid file!')
 
 
 def plot_item(com_list, name_list, selected, index_dict, widget):
@@ -191,7 +217,7 @@ def new_df(com_list, name_list, index_usd):
         new_s.append(com_list[i].ix[index_usd])
         new_s[-1].name = name_list[i]
         for k in range(len(new_s[-1])):
-            if pandas.isnull(new_s[-1][k]):
+            if pandas.isnull(new_s[-1][k]):     # could be modified to show missing data instead of showing '0'
                 new_s[-1][k] = 0
             elif type(new_s[-1][k]) != float:
                 if ',' in new_s[-1][k]:
@@ -202,7 +228,6 @@ def new_df(com_list, name_list, index_usd):
 
 
 def reset_index(df):
-    #   TODO maybe a rowcnt first
     new = ['Revenue USD Mil', 'Gross Margin %', 'Operating Income USD Mil', 'Operating Margin %',
            'Net Income USD Mil', 'Earnings Per Share USD', 'Dividends USD', 'Payout Ratio %', 'Shares Mil',
            'Book Value Per Share USD', 'Operating Cash Flow USD Mil', 'Cap Spending USD Mil',

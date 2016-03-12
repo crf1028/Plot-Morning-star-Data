@@ -9,7 +9,10 @@ Instructions of using this tool
 - Plot single figure or save data to cvs file for future usage.
 
 
-Things that you maight be aware of 
+Things that you should be aware of
 --------------
 - The tool doesn't support companies using currency other than USD, because comparing USD with any other currency directly is meaningless.
 - If you wish to run the script with python, libs like pandas and matplotlib may be required.
+- Downloaded file from Morningstar website shouldn't be renamed, otherwise it would not be accepted.
+- Zero in data means there is missing data in original file.
+
